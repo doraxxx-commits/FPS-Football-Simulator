@@ -13,15 +13,17 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Unzip project directly
+      - name: Find and Unzip any ZIP file
         run: |
-          unzip -o FPS-Pro-APK-ready-v2.zip -d .
-          rm FPS-Pro-APK-ready-v2.zip
+          ZIP_FILE=$(ls *.zip | head -n 1)
+          echo "Found zip file: $ZIP_FILE"
+          unzip -o "$ZIP_FILE" -d .
+          rm "$ZIP_FILE"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
