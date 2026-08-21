@@ -37,6 +37,11 @@ jobs:
       - name: Install npm dependencies
         run: npm install
 
+      - name: Prepare web assets directory
+        run: |
+          mkdir -p www
+          cp -r frontend/* www/
+
       - name: Sync & Build Capacitor
         run: |
           npx cap add android || true
