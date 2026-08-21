@@ -17,8 +17,16 @@ jobs:
         run: |
           ZIP_FILE=$(ls *.zip | head -n 1)
           echo "Found zip file: $ZIP_FILE"
-          unzip -o "$ZIP_FILE" -d .
+          unzip -o "$ZIP_FILE" -d temp_unzip
           rm "$ZIP_FILE"
+          
+          # Przemieszczenie plików na wierzch, jeśli ZIP utworzył podfolder
+          if [ -f temp_unzip/package.json ]; then
+            mv temp_unzip/* .
+          else
+            mv temp_unzip/*/* . || true
+          fi
+          rm -rf temp_unzip
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
