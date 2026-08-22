@@ -5,6 +5,9 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,18 +18,19 @@ jobs:
 
       - name: Find and Unzip any ZIP file
         run: |
-          ZIP_FILE=$(ls *.zip | head -n 1)
-          echo "Found zip file: $ZIP_FILE"
-          unzip -o "$ZIP_FILE" -d temp_unzip
-          rm "$ZIP_FILE"
-          
-          # Przemieszczenie plików na wierzch, jeśli ZIP utworzył podfolder
-          if [ -f temp_unzip/package.json ]; then
-            mv temp_unzip/* .
-          else
-            mv temp_unzip/*/* . || true
+          ZIP_FILE=$(ls *.zip 2>/dev/null | head -n 1) || true
+          if [ -n "$ZIP_FILE" ]; then
+            echo "Found zip file: $ZIP_FILE"
+            unzip -o "$ZIP_FILE" -d temp_unzip
+            rm "$ZIP_FILE"
+            
+            if [ -f temp_unzip/package.json ]; then
+              mv temp_unzip/* .
+            else
+              mv temp_unzip/*/* . || true
+            fi
+            rm -rf temp_unzip
           fi
-          rm -rf temp_unzip
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -67,3 +71,12 @@ jobs:
         with:
           name: app-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Create GitHub Release with raw APK
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+          tag_name: build-${{ github.run_number }}
+          name: FPS Simulator APK #${{ github.run_number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
